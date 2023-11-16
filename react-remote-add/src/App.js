@@ -1,3 +1,5 @@
+
+import { useState } from "react";
 import "./App.css";
 
 const addRemote = async (a, b) =>
@@ -6,9 +8,21 @@ const addRemote = async (a, b) =>
   });
 
 // 请实现本地的add方法，调用 addRemote，能最优的实现输入数字的加法。
-async function add(...inputs) {
+async function add(inputs) {
   // 你的实现
+  const startTime = new Date();
+  let sum = Number(inputs[0]);
+  for(let i = 1, l = inputs.length;i < l; i++){
+    sum = await addRemote(sum,Number(inputs[i]))
+  }
+  const endTime = new Date();
+  return {
+    time: endTime - startTime,
+    sum, 
+  };
 }
+
+const reg = /^[0-9,]*$/;
 
 /**
  * 要求：
@@ -18,6 +32,24 @@ async function add(...inputs) {
  * 3. 计算时间越短越好
  */
 function App() {
+  const [totalNum, setTotalNum] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [time, setTime] = useState(0);
+  const [inputVerify, setInputVerify] = useState(false);
+  const [inputVal, setInputVal] = useState('');
+
+  const handleBtn = (val) => {
+    setLoading(true);
+    add(val.split(",")).then((res) => {
+      setTotalNum(res.sum || 0);
+      setTime(res.time || 0);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    })
+  }
+
+
   return (
     <div className="App">
       <header className="App-header">
@@ -31,13 +63,22 @@ function App() {
         </div>
       </header>
       <section className="App-content">
-        <input type="text" placeholder="请输入要相加的数字（如1,4,3,3,5）" />
-        <button>相加</button>
+        <input disabled={loading} type="text" value={inputVal} placeholder="请输入要相加的数字（如1,4,3,3,5）" onChange={(v) => {
+          if(!reg.test(v.target.value)) {
+            setInputVerify(true);
+          } else {
+            setInputVerify(false);
+          }
+          setInputVal(v.target.value);
+        }} />
+        <button onClick={() => { handleBtn(inputVal) }} disabled={inputVerify || !inputVal}>
+          {loading ? '计算中' : '相加'}
+        </button>
       </section>
       <section className="App-result">
         <p>
           相加结果是：
-          {"{你的计算结果}"}， 计算时间是：{"{你的计算时间}"} ms
+          {totalNum}， 计算时间是：{time} ms
         </p>
       </section>
     </div>
