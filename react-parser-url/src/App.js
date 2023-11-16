@@ -10,9 +10,26 @@ const defaultParserResult = {
   hash: ''
 }
 
+function urlParamsToObject(url) {
+  const params = new URLSearchParams(url.search);
+  const paramObj = {};
+  for (let [key, value] of params) {
+    paramObj[key] = decodeURIComponent(value);
+  }
+  return paramObj;
+}
+
 const parserUrl = (url) => {
   // 你的实现
-  return defaultParserResult;
+  const urls = new URL(url);
+  return {
+    protocol: urls.protocol,
+    hostname: urls.hostname,
+    port: urls.port,
+    pathname: urls.pathname,
+    hash: urls.hash,
+    params: urlParamsToObject(urls),
+  }
 };
 
 // 测试用例
@@ -22,12 +39,13 @@ parserUrl('https://baidu.com:443/s?wd=hello');
 
 function App() {
   const [result, setResult] = useState(defaultParserResult);
+  const [inputVal, setInputVal] = useState('');
 
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.keyCode === 13) {
-        console.log('这里 处理 Enter 事件');
-        setResult(defaultParserResult);
+        const parserResult =  parserUrl(inputVal)
+        setResult(parserResult);
       }
     }
     document.addEventListener('keydown', onKeyDown, false);
@@ -41,7 +59,9 @@ function App() {
         <div>并将结果渲染在页面上（tips: 请尽可能保证 parserUrl 的健壮性和完备性）</div>
       </header>
       <section className="App-content">
-        <input type="text" placeholder="请输入 url 字符串" />
+        <input type="text" value={inputVal} placeholder="请输入 url 字符串" onChange={(v) => {
+          setInputVal(v.target.value)
+        }} />
         <button id="J-parserBtn">解析</button>
       </section>
       <section className="App-result">
